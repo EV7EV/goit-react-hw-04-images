@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useEffect, useState } from 'react';
 import style from './App.module.css';
 import { SearchBar } from 'components/Searchbar/SearchBar';
 import { findImage } from '../../api/api';
@@ -7,75 +7,86 @@ import { Button } from 'components/Button/Button';
 import { Modal } from 'components/Modal/Modal';
 import { Loader } from 'components/Loader/Loader';
 
-export class App extends Component {
-  state = {
-    images: [],
-    page: 1,
-    query: '',
-    showModal: false,
-    largeImage: null,
-    isLoading: false,
-    showButton: false,
-  };
+export const App = () => {
+  // state = {
+  //   images: [],
+  //   page: 1,
+  //   query: '',
+  //   showModal: false,
+  //   largeImage: null,
+  //   isLoading: false,
+  //   showButton: false,
+  // };
+
+  const [images, setImages] = useState([]);
+  const [page, setPage] = useState(1);
+  const [query, setQuery] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [largeImage, setLargeImage] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showButton, setShowButton] = useState(false);
 
   // метод для отримання великого зображення
 
-  getLargeImage = image => {
-    this.modalTogal();
-    this.setState({ largeImage: image });
+  const getLargeImage = image => {
+    modalTogal();
+    setLargeImage(image);
   };
 
-  componentDidUpdate(_, prevState) {
-    const { page, query } = this.state;
+  // const componentDidUpdate(_, prevState) {
+  //   const { page, query } = this.state;
 
-    if (prevState.query !== query || prevState.page !== page) {
-      this.getImages(query, page);
-    }
-  }
+  //   if (prevState.query !== query || prevState.page !== page) {
+  //     this.getImages(query, page);
+  //   }
+  // }
 
-  onHandleSubmit = value => {
-    this.setState({ images: [], query: value, page: 1 });
-  };
-
-  getImages = async (name, page) => {
-    if (!name) {
+  useEffect(() => {
+    if (!query) {
       return;
     }
-    try {
-      this.setState({ isLoading: true });
-      const { hits, totalHits } = await findImage(name, page);
-      this.setState(prevState => ({
-        images: [...prevState.images, ...hits],
-        showButton: this.state.page < Math.ceil(totalHits / 12),
-      }));
-    } catch (error) {
-      console.log(error.message);
-    } finally {
-      this.setState({ isLoading: false });
-    }
+
+    const getImages = async () => {
+      try {
+        setIsLoading(true);
+        const { hits, totalHits } = await findImage(query, page);
+
+        // setImages([...images, ...hits]);
+        setImages(prevState => [...prevState, ...hits]);
+
+        setShowButton(page < Math.ceil(totalHits / 12));
+      } catch (error) {
+        console.log(error.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    getImages();
+  }, [page, query]);
+
+  const onHandleSubmit = value => {
+    setImages([]);
+    setQuery(value);
+    setPage(1);
+    setIsLoading(false);
+    setShowButton(false);
   };
 
-  modalTogal = () => {
-    this.setState(prevState => ({ showModal: !prevState.showModal }));
+  const modalTogal = () => {
+    setShowModal(!showModal);
   };
   // Функція яка завантажує додаткові зображення
-  onLoadMore = () => {
-    this.setState(prevState => ({ page: prevState.page + 1 }));
+  const onLoadMore = () => {
+    setPage(page + 1);
   };
 
-  render() {
-    const { images, showModal, largeImage, isLoading, showButton } = this.state;
-
-    return (
-      <div className={style.App} onClick={this.handleBackdropClick}>
-        <SearchBar onHandleSubmit={this.onHandleSubmit} />
-        <ImageGallery images={images} getLargeImage={this.getLargeImage} />
-        {showButton && <Button onClick={this.onLoadMore} />}
-        {showModal && (
-          <Modal largeImage={largeImage} onClose={this.modalTogal} />
-        )}
-        {isLoading && <Loader />}
-      </div>
-    );
-  }
-}
+  return (
+    <div className={style.App}>
+      <SearchBar onHandleSubmit={onHandleSubmit} />
+      <ImageGallery images={images} getLargeImage={getLargeImage} />
+      {showButton && <Button onClick={onLoadMore} />}
+      {showModal && <Modal largeImage={largeImage} onClose={modalTogal} />}
+      {isLoading && <Loader />}
+    </div>
+  );
+};
