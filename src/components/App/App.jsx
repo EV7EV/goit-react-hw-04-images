@@ -8,16 +8,6 @@ import { Modal } from 'components/Modal/Modal';
 import { Loader } from 'components/Loader/Loader';
 
 export const App = () => {
-  // state = {
-  //   images: [],
-  //   page: 1,
-  //   query: '',
-  //   showModal: false,
-  //   largeImage: null,
-  //   isLoading: false,
-  //   showButton: false,
-  // };
-
   const [images, setImages] = useState([]);
   const [page, setPage] = useState(1);
   const [query, setQuery] = useState('');
@@ -32,14 +22,6 @@ export const App = () => {
     modalTogal();
     setLargeImage(image);
   };
-
-  // const componentDidUpdate(_, prevState) {
-  //   const { page, query } = this.state;
-
-  //   if (prevState.query !== query || prevState.page !== page) {
-  //     this.getImages(query, page);
-  //   }
-  // }
 
   useEffect(() => {
     if (!query) {
